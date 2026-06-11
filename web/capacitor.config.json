@@ -1,0 +1,11 @@
+{
+  "appId": "in.mfoverlap.app",
+  "appName": "MF Overlap",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

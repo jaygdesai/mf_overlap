@@ -1,0 +1,50 @@
+name: Daily data refresh
+
+on:
+  schedule:
+    # 02:30 UTC = 08:00 IST, after the previous day's disclosures settle.
+    - cron: "30 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch holdings for all funds
+        run: python pipeline/fetch_holdings.py --workers 8
+
+      - name: Compute overlaps and append history
+        run: python pipeline/compute_overlaps.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "mf-overlap-bot"
+          git config user.email "actions@github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No data changes today."
+          else
+            git commit -m "data: daily refresh $(date -u +%F)"
+            git push
+          fi
+
+  deploy:
+    needs: refresh
+    uses: ./.github/workflows/deploy-web.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
