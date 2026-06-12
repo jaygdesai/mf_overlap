@@ -54,6 +54,11 @@ export default function CompareView({ funds, holdings, pair, setPair }) {
                 <div className="muted small" style={{ margin: '6px 0 14px', maxWidth: 520 }}>
                   {fmtPct(result.overlap)} of these two portfolios is invested in the
                   same instruments (sum of the smaller weight on each common holding).
+                  {result.rescaled && (
+                    <> Short futures/derivative legs are excluded and the long book
+                    is rescaled to 100% gross — common for arbitrage and
+                    equity-savings funds.</>
+                  )}
                 </div>
                 <div className="kpis">
                   <div className="kpi"><div className="v">{result.common.length}</div>

@@ -5,6 +5,10 @@ Overlap between fund A and fund B = sum over common instruments of
 min(weight_in_A, weight_in_B), expressed in percent (0-100). This is the
 standard "common portfolio" measure used for mutual fund overlap analysis.
 
+Negative-weight rows (short futures/derivative legs, as disclosed by e.g.
+arbitrage funds) are excluded, and a fund whose remaining long book exceeds
+100% gross is rescaled to 100%, so overlap is always within 0-100.
+
 Pairwise matrices are precomputed per category (same sub-category funds);
 cross-category pairs are computed on demand in the web client from the
 holdings snapshot.
@@ -44,7 +48,7 @@ def overlap_pct(weights_a: dict[str, float], weights_b: dict[str, float]) -> flo
         wb = weights_b.get(key)
         if wb is not None:
             total += min(wa, wb)
-    return total
+    return min(total, 100.0)
 
 
 def triangle(values_by_pair, n):
@@ -68,7 +72,13 @@ def main() -> int:
     for fund_id, entry in holdings.items():
         w: dict[str, float] = {}
         for key, _name, _sector, _nature, pct in entry["h"]:
+            if pct <= 0:
+                continue  # short futures/derivative legs, negative cash
             w[key] = w.get(key, 0.0) + pct
+        total = sum(w.values())
+        if total > 100.05:
+            scale = 100.0 / total
+            w = {k: v * scale for k, v in w.items()}
         weights[fund_id] = w
 
     aum_by_id = {f["id"]: f.get("aum") or 0 for f in funds}
