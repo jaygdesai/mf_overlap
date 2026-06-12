@@ -14,7 +14,9 @@ website and an installable Android app.
 
 **Overlap metric**: `overlap(A, B) = Σ min(weight in A, weight in B)` over all
 instruments held by both funds — the standard "common portfolio" measure,
-expressed in percent.
+expressed in percent. Short futures/derivative legs (negative weights, as
+disclosed by arbitrage and equity-savings funds) are excluded, and a fund whose
+long book exceeds 100% gross is rescaled to 100%, so overlap is always 0–100%.
 
 ## How it works
 
